@@ -1,0 +1,18 @@
+# Chimera coding style standard, as used in perltidy
+# Assume that non-listed options are the default settings
+--standard-output
+--standard-error-output
+--perl-syntax-check-flags=-c
+--continuation-indentation=4
+--nostatic-block-comments
+--paren-tightness=2
+--square-bracket-tightness=2
+--maximum-line-length=78
+--no-outdent-labels
+--want-break-before="+ - * x ** / % = == != >= <= =~ !~ ~~ < > | & += -= *= x= **= /= %= |= <<= >>= &= &&= ||= \\= .="
+# Not sure if we need these
+--nooutdent-long-quotes
+--nooutdent-long-lines
+--nospace-for-semicolon
+--noadd-semicolons
+--cuddled-else

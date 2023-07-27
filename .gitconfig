@@ -1,0 +1,263 @@
+[user]
+    email = <your email>
+    name  = Eugen Konkov
+
+# Fresh copy of git:
+# sudo add-apt-repository ppa:git-core/ppa
+# sudo apt update
+# sudo apt install git
+
+# Compress
+# git gc --prune=now --aggressive
+
+# Archive untracked
+# git ls-files --others --exclude-standard -z xargs -0 tar rvf ~/backup-untracked.zip
+
+# View file on other branch
+# git show main:README.md
+
+# Search via all branches
+# git rev-list --all | xargs git grep -F ‘string to search’
+
+
+#[includeIf "gitdir:~/work/"]
+#    path = ~/work/.gitconfig
+
+
+# LESSCHARSET=koi8-r для правильного вывода в less
+#git config --global user.name "Ваше имя"
+#git config --global user.email you@example.com
+#git config --global color.diff auto
+#git config --global color.status auto
+#git config --global color.branch auto
+#git config --global core.whitespace "trailing-space,space-before-tab"
+#git config --global apply.whitespace "trailing-space,space-before-tab"
+#git config --global merge.renormalize true
+[core]
+    # editor required for aliases: mnf
+    editor = "subl -w"
+    quotepath = false
+    # pager = "less -x5,9"
+    # whitespace = trailing-space,space-before-tab
+[i18n]
+    commitencoding = utf-8
+    logoutputencoding = utf-8
+[apply]
+    ignoreWhitespace = change
+    whitespace=fix
+
+[color]
+    ui = auto
+    # diff = auto
+    # status = auto
+    # branch = auto
+
+# http://stackoverflow.com/a/12798205/4632019
+[color "status"]
+    changed = red bold
+    # untracked = red bold
+
+[color "diff"]
+    old = red bold
+    new = green bold
+
+#[branch "*"]
+#    mergeoptions = "ignore-space-change,ignore-space-at-eol"
+
+[alias]
+    # Here date is added:
+    # git config --global alias.hist "log --pretty=format:'%h %ad | %s%d [%an]' --graph --date=short"
+    tree        = log --graph --decorate --pretty=oneline --abbrev-commit
+    showc       = show --color-words='''[^[:space:]]|([[:alnum:]]|UTF_8_GUARD)+'''
+    # https://stackoverflow.com/a/9074343/4632019
+    # lg1 = log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(bold yellow)%d%C(reset)' --all
+    # lg2 = log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold cyan)%aD%C(reset) %C(bold green)(%ar)%C(reset)%C(bold yellow)%d%C(reset)%n''          %C(white)%s%C(reset) %C(dim white)- %an%C(reset)' --all
+    # lg = !"git lg1"
+
+
+    # Follow evolution of certain lines in a file
+    # arg1=file, arg2=first line, arg3=last line or blank for just the first line
+    # arg4=commit from which we want to see history. Useful when code is moved or file was removed
+    # bash_fn = "!bash -c 'f(){ echo $1; };f $@' --"
+    # Example how to see history for deleted file: gh lib/S.pm 30 40 e8588f8d^
+    follow = "!bash -c '                                                 \
+        if [[ $1 == \"/\"* ]]; then                                      \
+            FILE=$1;                                                     \
+        else                                                             \
+            FILE=${GIT_PREFIX}$1;                                        \
+        fi;                                                              \
+        echo \"git log --topo-order -u -L $2,${3:-$2}:\\\"$FILE\\\" $4 \";   \
+        git log -w -b -p --ignore-blank-lines --topo-order -u -L $2,${3:-$2}:\"$FILE\" $4;\
+    ' --"
+    # TODO: Read about --follow
+
+    ss = !bash -c 'git stash show -p stash@{${1:-0}}' --
+    sa = !bash -c 'git stash apply stash@{$1}' --
+    sl = stash list
+
+    # http://thediscoblog.com/blog/2014/03/29/custom-git-commands-in-3-steps/
+
+    # https://serverfault.com/a/165222/307225
+    # git reauthor $START..$END
+    # reauthor = !sh -c 'eval `git log --reverse --topo-order --pretty=format:\"git cherry-pick %H &&  git commit --amend -C %H --author=\\\"%aN <%aE>\\\" && \" $0 ` "echo success" '
+
+    # git reauthor <from> <new author>
+    # https://stackoverflow.com/a/51114838/4632019
+    # -i is requred to fix useless 'exec' after 'reset onto'
+    reauthor = !bash -c 'git rebase --onto $1 -i -r --exec \"git commit --amend --author=$2\" $1' --
+    recommit = !bash -c 'git rebase --onto $1 -i -r --exec \"git commit --amend\" $1' --
+
+    # Command examples: GIT_TRACE=2 git hi var1 var2
+    hi1 = "!echo 'hello' #"
+    hi2 = !sh -c 'echo ${GIT_PREFIX}$1' --
+    hi3 = !sh -c 'echo $1' -
+    hi4 = "!f(){ echo $1; unset -f f };f"
+
+    # When we fetch changes some branch maybe force rebased.
+    # The changes will be shouwn as: abcdef...1a2bc3
+    # To see what happened after rebasing to forced update
+    fullchanges = log --graph --decorate --pretty=oneline --abbrev-commit --cherry-mark --boundary --left-right
+    changes     = log --graph --decorate --pretty=oneline --abbrev-commit --cherry-pick --boundary --left-right
+    # right-only means: the patches that was added by right side
+    ltheirs     = log --graph --decorate --pretty=oneline --abbrev-commit --cherry-pick --boundary --left-right --right-only
+    # left-only means: the patches that was added by left side
+    lmine       = log --graph --decorate --pretty=oneline --abbrev-commit --cherry-pick --boundary --left-right --left-only
+
+    # Show only your commits. Ignore merger into your topic branch
+    mine        = log --first-parent
+    iscmerge    = merge -s recursive -Xignore-space-change
+
+    # Easy rebasing: <TO> <UPSTREAM>
+    # It calculates upstream point and shows the list of commits which will be rebased
+    erb         = "!EDITOR='subl -w' bash -c '                           \
+        TO=$1;                                                           \
+        UPSTREAM=${2:-$1};                                               \
+        echo "The difference between specified branches:";               \
+        SRC_BRANCH=$(git symbolic-ref --short HEAD);                     \
+        git fullchanges $SRC_BRANCH...${UPSTREAM:-$TO};                  \
+        git rebase -v -n --autostash -r -i --onto $TO $UPSTREAM;         \
+    ' --"
+
+
+    prb         = pull -v --rebase=merges
+    prbb        = "!f(){ git prb $1 $(git symbolic-ref --short HEAD); unset -f f };f"
+    br          = branch
+    dc          = clean -dfX
+
+    fork-point  = !bash -c 'diff --old-line-format='' --new-line-format='' <(git rev-list --first-parent "${1:-main}") <(git rev-list --first-parent "${2:-HEAD}") | head -1' -
+    bd          = !bash -c 'git diff -b -w --ignore-blank-lines `git fork-point`..'
+    bl          = !bash -c 'git log -w -b -p --ignore-blank-lines `git fork-point`..'
+
+    fs         = flow feature start
+    ff         = flow feature finish
+    fc         = flow feature checkout
+    hs         = flow hotfix start
+    hf         = flow hotfix finish
+    cp         = cherry-pick
+    mt         = mergetool
+
+    mnf        = merge --no-ff
+    mff        = merge --ff-only
+
+    # How commits are different from eachother
+    # https://git.wiki.kernel.org/index.php/Aliases#Advanced_aliases_with_arguments
+    # cdiff = !bash -c 'interdiff -w -b -B <(git show $1) <(git show $2) || diff -ruBN <(git show $1) <(git show $2)  | less -FRS ' -
+    cdiff      = range-diff --no-dual-color --creation-factor=120
+
+    dump       = log -n 20 --all --graph --format="%h %p %d %s" | curl -F text=@- https://upaste.de/
+	dirty-patch = "!bash -c \"cd ${GIT_PREFIX};git add .;git commit -m uncommited; git format-patch HEAD~1; git reset HEAD~1\""
+
+    # git config --global alias.stashs 'stash push -S'
+    stashs = stash push -S
+    # git config --global alias.stashu '!git stash push -S; git stash; git stash pop --index stash@{1}'
+	stashu = "!git stash push -S && echo 'YES1'; git stash && echo 'YES2'; git stash pop --index stash@{1}"
+
+
+# git shortlog -s -n
+# git log --numstat
+[push]
+        default = current
+
+[track]
+        repo = ~/.config/git-env
+
+[rerere]
+    # Store merge conflict resolutions for next time
+	enabled = true
+
+[rebase]
+    # Store current changes in stash before rebasing
+	autoStash = true
+
+# http://kernowsoul.com/blog/2012/06/20/4-ways-to-avoid-merge-commits-in-git/
+[branch]
+    autosetuprebase = always
+
+# [pager]
+#     log  = diff-highlight | less
+#     show = diff-highlight | less
+#     diff = diff-highlight | less
+
+
+
+# http://www.sublimerge.com/sm3/docs/vcs-integration.html#git
+[difftool "sublimerge"]
+    cmd = subl -n --wait \"$REMOTE\" \"$LOCAL\" --command \"sublimerge_diff_views {\\\"left_read_only\\\": true, \\\"right_read_only\\\": true}\"
+
+[mergetool "sublimerge"]
+    cmd = subl -n --wait \"$REMOTE\" \"$LOCAL\" \"$BASE\" \"$MERGED\" --command \"sublimerge_diff_views\"
+    trustExitCode = false
+
+
+# http://stackoverflow.com/questions/34119866/setting-up-and-using-meld-as-your-git-difftool-and-mergetool
+[mergetool "meld"]
+    # Choose one of these 2 lines (not both!) explained below.
+    # cmd = meld "$LOCAL" "$MERGED" "$REMOTE" --output "$MERGED"
+    cmd = meld --output "$MERGED" "$REMOTE" "$MERGED" "$LOCAL"
+
+[mergetool "kdiff3"]
+    trustExitCode = false
+    cmd = kdiff3 --output "$MERGED" "$REMOTE" "$BASE" "$LOCAL"
+
+[mergetool "p4v"]
+    trustExitCode = false
+    cmd = ~/tmp/p4v-2018.1.1637591/bin/p4merge "$BASE" "$REMOTE" "$LOCAL" "$MERGED"
+
+[merge]
+    conflictstyle = diff3
+    # renormalize = true
+    # git mergetool --tool-help
+    tool = meld
+
+[diff]
+    tool = sublimerge
+    #colorMoved = default
+    colorMoved = zebra
+    colorMovedWS = ignore-all-space
+
+[fetch]
+    prune = true
+
+
+# How to rebase: https://stackoverflow.com/a/50416539/4632019
+# git rebase -p --onto dev_hypermouse base_point finish_point
+
+# Get current branch
+# git config --global alias.my-pull '!git pull origin $(git symbolic-ref --short HEAD) && :'
+
+
+# git format-patch <to_hash> -- lib/DbMapper t/DbMapper/ lib/DbMapper.pm
+[pull]
+    rebase = true
+
+[help]
+    autocorrect = 1
+
+[init]
+    defaultBranch = dev
+
+[credential]
+    helper = osxkeychain
+
+#[url "gh:"]
+#	insteadOf = https://github.com/
