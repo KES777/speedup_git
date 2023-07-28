@@ -1,5 +1,7 @@
 # speedup_git
 
+[Be Effective with Git - Eugen Konkov - Lightning Talk - TPRC 2023](https://youtu.be/4hTq-Gsue3A?list=PLA9_Hq3zhoFwrDiojWd_lFUaOHlsUUEJa)
+
 Where to find:
 https://github.com/holygeek/git-number
 
